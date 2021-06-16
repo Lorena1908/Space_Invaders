@@ -17,20 +17,57 @@ pixel_laser_blue = pygame.image.load('assets/pixel_laser_blue.png')
 pixel_laser_yellow = pygame.image.load('assets/pixel_laser_yellow.png')
 
 class Laser:
-    def __init__(self, x, y):
+    def __init__(self, x, y, laser):
         self.x = x
         self.y = y
-        self.laser = pixel_laser_yellow
+        self.laser = laser
     
     def draw(self):
         win.blit(self.laser, (self.x, self.y))
     
-    def move(self):
-        self.y -= 5
+    def move(self, vel):
+        self.y += vel
     
     def off_screen(self):
         return self.y > height or self.y < -40
 
+
+class Ship:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.ship = color
+        self.lasers = []
+
+        if self.ship == 'red':
+            self.ship, self.laser = (red_ship, pixel_laser_red)
+        elif self.ship == 'green':
+            self.ship, self.laser = (green_ship, pixel_laser_green)
+        elif self.ship == 'blue':
+            self.ship, self.laser = (blue_ship, pixel_laser_blue)
+    
+    def draw(self):
+        win.blit(self.ship, (self.x, self.y))
+
+        for laser in self.lasers:
+            if laser.off_screen():
+                self.lasers.remove(laser)
+            else:
+                laser.draw()
+                laser.move(5)
+    
+    def move(self):
+        self.y += 0.8
+    
+    def shoot(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            pygame.key.set_repeat(100)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.lasers.append(Laser(self.x, self.y, self.laser))
 
 class Player:
     def __init__(self):
@@ -54,34 +91,38 @@ class Player:
                 self.lasers.remove(laser)
             else:
                 laser.draw()
-                laser.move()
-        
+                laser.move(-5)
     
-    def move(self):
+
+def main():
+    run = True
+    player = Player()
+    ship = Ship(width/2, 0, 'red')
+
+    while run:
+        win.blit(background, (0,0))
+        player.draw()
+        ship.draw()
+        ship.move()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
             pygame.key.set_repeat(100)
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT and self.x + self.show_ship.get_width() <= width:
-                    self.x += 20
+                if event.key == pygame.K_RIGHT and player.x + player.show_ship.get_width() <= width:
+                    player.x += 20
 
-                if event.key == pygame.K_LEFT and self.x >= 0:
-                    self.x -= 20
+                if event.key == pygame.K_LEFT and player.x >= 0:
+                    player.x -= 20
                 
                 if event.key == pygame.K_UP:
-                    self.lasers.append(Laser(self.x, self.y - 18))
-    
-
-def main():
-    run = True
-    player = Player()
-
-    while run:
-        win.blit(background, (0,0))
-        player.draw()
-        player.move()
+                    player.lasers.append(Laser(player.x, player.y - 18, pixel_laser_yellow))
+                
+                if event.key == pygame.K_SPACE:
+                    ship.lasers.append(Laser(ship.x, ship.y, ship.laser))
+                    
         
         pygame.display.update()
 
