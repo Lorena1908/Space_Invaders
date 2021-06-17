@@ -1,4 +1,5 @@
 import pygame
+import random
 pygame.font.init()
 
 width, height = 600, 700
@@ -66,7 +67,7 @@ class Ship:
         self.y += vel
     
     def off_screen(self):
-        return self.y > height or self.y < -40
+        return self.y > height
 
 class Player:
     def __init__(self):
@@ -90,6 +91,12 @@ class Player:
             else:
                 laser.draw()
                 laser.move(-5)
+    
+    def check_health(self):
+        for color in self.healthbar:
+            if color == (0, 211, 7):
+                return False
+        return True
 
 
 def collide(obj1, obj2):
@@ -100,12 +107,13 @@ def collide(obj1, obj2):
 def main():
     run = True
     player = Player()
-    enemies = [Ship(width/2, 0, 'red'), Ship(width/2-150, 0, 'green')]
+    enemies = []
     health = len(player.healthbar)
-    lives = 1
+    lives = 5
     level = 0
     lost = False
     clock = pygame.time.Clock()
+    wave_length = 0
 
     def draw_window():
         player.draw()
@@ -131,11 +139,17 @@ def main():
         clock.tick(60)
         win.blit(background, (0,0))
 
-        if lives <= 0:
+        if lives <= 0 or player.check_health():
             lost = True
             run = False
         
         draw_window()
+
+        if len(enemies) == 0:
+            level += 1
+            wave_length += 5
+            for i in range(wave_length):
+                enemies.append(Ship(random.randrange(0, width - 70), random.randrange(-1500, -40), random.choice(['red', 'green', 'blue'])))
 
         for enemy in enemies:
             enemy.move(1)
@@ -143,6 +157,9 @@ def main():
             if enemy.off_screen():
                 enemies.remove(enemy)
                 lives -= 1
+            
+            if random.randrange(0,120) == 1:
+                enemy.lasers.append(Laser(enemy.x, enemy.y, enemy.laser))
             
             if collide(enemy, player):
                 health -= 1
@@ -169,9 +186,6 @@ def main():
 
                 if event.key == pygame.K_UP:
                     player.lasers.append(Laser(player.x, player.y - 18, pixel_laser_yellow))
-            
-                if event.key == pygame.K_SPACE:
-                    enemies[0].lasers.append(Laser(enemies[0].x, enemies[0].y, enemies[0].laser))
         
         # The code below for user input runs faster and smoother then the one above because it is directly 
         # in the main loop and it isn't ina for loop
@@ -202,4 +216,4 @@ def menu_screen():
                 main()
         
 
-main()
+menu_screen()
