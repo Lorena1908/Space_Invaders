@@ -26,7 +26,12 @@ class Laser:
         self.mask = pygame.mask.from_surface(self.laser)
     
     def draw(self):
-        win.blit(self.laser, (self.x, self.y))
+        if self.laser == pixel_laser_blue:
+            win.blit(self.laser, (self.x-25, self.y))
+        elif self.laser == pixel_laser_yellow:
+            win.blit(self.laser, (self.x, self.y))
+        else:
+            win.blit(self.laser, (self.x-15, self.y))
     
     def move(self, vel):
         self.y += vel
